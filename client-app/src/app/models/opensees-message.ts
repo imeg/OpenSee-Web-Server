@@ -12,3 +12,4 @@ export interface OpenseesExecutionMessage {
     command: string;
     dateTime : Date;
 }
+

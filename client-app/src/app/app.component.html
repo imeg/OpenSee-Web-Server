@@ -1,32 +1,47 @@
-<div class="row">
-  <div class="col-md-4">
+<span style="position: absolute;right: 0;color: white;" *ngIf="hubInfo?.connectionId">Connection Id:{{hubInfo?.connectionId}}</span>
+<div class="row" style="background: black; color: white;">
+  <div class="col-md-12 pl-5 pr-5">
     <div class="row">
       <div class="col-md-12">
-        <button class="btn btn-primary" (click)="getHubInfo()">get Hub Info</button>
-        <b>{{hubInfo?.connectionId}}</b>
+        <button class="btn btn-primary mr-1" (click)="getHubInfo()">Connect</button>
+        <button class="btn btn-primary" [disabled]="!hubInfo?.connectionId" (click)="test()">Execute Simple App</button>
       </div>
     </div>
   </div>
-  <div class="col-md-8">
-    <button class="btn btn-primary" (click)="test()">Test</button>
-  </div>
-  <div>
-    <table style="width: 100%;">
+  <div class="col-md-12 mt-3">
+    <p class="prompt" *ngFor="let prompt of openseesHubService.prompts">
+      {{prompt}}
+    </p>
+    <table style="    width: 90%;
+    margin: 0 auto;
+    margin-top: 22px;">
+      <thead>
+        <tr>
+          <td>Command</td>
+          <td>Result</td>
+          <td>Is Incomplete?</td>
+        </tr>
+      </thead>
       <tr *ngFor="let msg of openseesHubService.recivedOpsExecMsgs">
-        <td>
-          {{msg.executionStatus}}
+        <!-- <td>
+          {{msg.executionStatus}} |
         </td>
+        <td>
+          {{msg.dateTime | date:'M/d/yy, h:mm:ss:SSS a'}}
+        </td> -->
+        
         <td>
           {{msg.command}}
         </td>
         <td>
           {{msg.result}}
         </td>
-        <td>
+        <!-- <td>
           {{msg.errorMessage}}
-        </td>
+        </td> -->
         <td>
-          {{msg.dateTime | date:'M/d/yy, h:mm:ss:SSS a'}}
+          <span *ngIf="msg.executionStatus != 1">*</span>
+          <span *ngIf="msg.executionStatus == 1">&#10003;</span>
         </td>
       </tr>
     </table>

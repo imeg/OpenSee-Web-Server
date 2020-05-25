@@ -19,6 +19,7 @@ export class AppComponent implements OnInit {
   }
   
   getHubInfo(): void {
+    this.openseesHubService.prompts = [];
     this.openseesHubService.getHubInfo();
   }
 

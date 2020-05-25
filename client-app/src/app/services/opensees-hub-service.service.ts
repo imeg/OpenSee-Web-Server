@@ -11,6 +11,7 @@ import { Subject } from 'rxjs';
 export class OpenseesHubServiceService {
   private hubConnection: SignalR.HubConnection;
   hubInfo: HubInfo;
+  prompts: string[] = [];
   hubInfo$: Subject<HubInfo> = new Subject();
   recivedOpsExecMsgs: OpenseesExecutionMessage[] = [];
   connectionSuccessfullyStarted: boolean = false;
@@ -34,6 +35,10 @@ export class OpenseesHubServiceService {
     this.hubConnection.on("hub-info", (hubInfo: HubInfo) => {
       this.hubInfo = hubInfo;
       this.hubInfo$.next(hubInfo);
+    });
+
+    this.hubConnection.on("opensees-prompt", (message: string) => {
+      this.prompts.push(message)
     });
   }
 

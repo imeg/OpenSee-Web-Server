@@ -22,6 +22,14 @@ namespace OpenSeesServer.Core.Hubs
         [HubMethodName("get-hub-info")]
         public async Task GetHubInfo()
         {
+            await Clients.Caller.SendAsync("opensees-prompt", "");
+            await Clients.Caller.SendAsync("opensees-prompt", "OpenSees -- Open System For Earthquake Engineering Simulation");
+            await Clients.Caller.SendAsync("opensees-prompt", "Pacific Earthquake Engineering Research Center");
+            await Clients.Caller.SendAsync("opensees-prompt", "Version 3.2.0");
+            await Clients.Caller.SendAsync("opensees-prompt", "(c) Copyright 1999-2016 The Regents of the University of California");
+            await Clients.Caller.SendAsync("opensees-prompt", "All Rights Reserved");
+            await Clients.Caller.SendAsync("opensees-prompt", "(Copyright and Disclaimer @ http://www.berkeley.edu/OpenSees/copyright.html)");
+
             await Clients.Caller.SendAsync("hub-info", new HubInfoViewModel {
                 ConnectionId = Context.ConnectionId,
             });
