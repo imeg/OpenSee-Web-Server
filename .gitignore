@@ -1,0 +1,12 @@
+﻿*.dll
+*.pdb
+*.db
+*.exe
+.vs/OpenSeesServer/DesignTimeBuild/.dtbcache.v2
+node_modules/
+*.opendb
+.vs/
+client-app/src/assets/.gitkeep
+client-app/package-lock.json
+obj/
+bin/

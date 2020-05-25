@@ -1,0 +1,34 @@
+<div class="row">
+  <div class="col-md-4">
+    <div class="row">
+      <div class="col-md-12">
+        <button class="btn btn-primary" (click)="getHubInfo()">get Hub Info</button>
+        <b>{{hubInfo?.connectionId}}</b>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <button class="btn btn-primary" (click)="test()">Test</button>
+  </div>
+  <div>
+    <table style="width: 100%;">
+      <tr *ngFor="let msg of openseesHubService.recivedOpsExecMsgs">
+        <td>
+          {{msg.executionStatus}}
+        </td>
+        <td>
+          {{msg.command}}
+        </td>
+        <td>
+          {{msg.result}}
+        </td>
+        <td>
+          {{msg.errorMessage}}
+        </td>
+        <td>
+          {{msg.dateTime | date:'M/d/yy, h:mm:ss:SSS a'}}
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
