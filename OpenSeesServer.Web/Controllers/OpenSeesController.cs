@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using OpenSeesServer.Core.Models.RequestModels;
 using OpenSeesServer.Core.Services.OpenSeesServices;
 
 namespace OpenSeesServer.Web.Controllers
@@ -17,10 +18,17 @@ namespace OpenSeesServer.Web.Controllers
             this.openseesService = openseesService;
         }
 
-        [HttpGet("test/{connectionId}")]
-        public async Task<IActionResult> Test(string connectionId)
+        [HttpGet("initialize/{connId}")]
+        public async Task<IActionResult> Initialize(string connId)
         {
-            return Ok(await openseesService.Execute(connectionId));
+            await openseesService.Initialize(connId);
+            return Ok();
+        }
+
+        [HttpPost("execute")]
+        public async Task<IActionResult> Execute([FromBody] ExecutionCommandRequest model)
+        {
+            return Ok(await openseesService.Execute(model));
         }
     }
 }

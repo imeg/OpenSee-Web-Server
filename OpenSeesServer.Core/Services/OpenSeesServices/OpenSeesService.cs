@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.SignalR;
 using OpenSees.Components;
 using OpenSees.Handlers;
 using OpenSees.Tcl;
+using OpenSeesServer.Core.Helpers;
 using OpenSeesServer.Core.Hubs;
 using OpenSeesServer.Core.Infrastructures;
+using OpenSeesServer.Core.Models.RequestModels;
 using OpenSeesServer.Core.Models.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -16,69 +18,84 @@ namespace OpenSeesServer.Core.Services.OpenSeesServices
 {
     public partial class OpenSeesService : IOpenSeesService
     {
-        //private readonly ILogger<OpenSeesService> logger;
-        private OpenSeesTextWriter writer;
-        private TclWrapper tclInterp;
+        //private OpenSeesTextWriter writer;
+        //private TclWrapper tclInterp;
         private readonly IMapper mapper;
         private readonly IHubContext<OpenSeesHub> hubContext;
 
-        /*ILogger<OpenSeesService> logger*/
         public OpenSeesService(IMapper mapper, IHubContext<OpenSeesHub> hubContext)
         {
-            //this.logger = logger;
             this.mapper = mapper;
             this.hubContext = hubContext;
-            Initialize();
         }
 
-        public void Initialize()
+        public async Task Initialize(string connectionId)
         {
             try
             {
-                this.writer = new OpenSeesTextWriter("1");
-                this.tclInterp = new TclWrapper(new RedirectStreamWrapper(this.writer));
-                this.tclInterp.Init();
+                var writer = new OpenSeesTextWriter(connectionId, hubContext);
+                var tclInterp = new TclWrapper(new RedirectStreamWrapper(writer));
+                tclInterp.Init();
+                IOpenSeesService.TclWrappers.Add(connectionId, tclInterp);
+                await PromptOpenSeesCopyRight(connectionId);
             }
             catch (Exception ex)
             {
-                //logger.LogError(ex, "Unable to create opensees interpreter instance");
+                throw new Exception("error in initialization", ex);
             }
         }
 
-        public async Task<TclExecutionResultViewModel> Execute(string connectionId)
+        public async Task<TclExecutionResultViewModel> Execute(ExecutionCommandRequest model)
         {
-            var sourcefile = @"d:\test-model.tcl";
-            var commands = System.IO.File.ReadAllLines(sourcefile);
-            foreach(var command in commands)
+            var ret = getTclWrapper(model.ConnectionId).Execute(model.Command);
+            return await Task.FromResult(new TclExecutionResultViewModel()
             {
-                var execResult = tclInterp.Execute(command);
-                await hubContext.Clients.Client(connectionId).SendAsync("recived-execution-message", new TclExecutionResultViewModel
-                {
-                    Command = command,
-                    DateTime = DateTime.UtcNow,
-                    ErrorMessage = execResult.ErrorMessage,
-                    ExecutionStatus = execResult.ExecutionStatus,
-                    Result = execResult.Result,
-                });
-            }
-            
-            var ret = tclInterp.Execute("wipe");
-            return new TclExecutionResultViewModel()
-            {
-                Command = "wipe",
+                Command = model.Command,
                 DateTime = DateTime.UtcNow,
                 ErrorMessage = ret.ErrorMessage,
                 ExecutionStatus = ret.ExecutionStatus,
                 Result = ret.Result
-            };
+            });
+
+            //var sourcefile = @"d:\test-model.tcl";
+            //var commands = System.IO.File.ReadAllLines(sourcefile);
+            //foreach(var command in commands)
+            //{
+            //    var execResult = tclInterp.Execute(command);
+            //    await hubContext.Clients.Client(connectionId).SendAsync("recived-execution-message", new TclExecutionResultViewModel
+            //    {
+            //        Command = command,
+            //        DateTime = DateTime.UtcNow,
+            //        ErrorMessage = execResult.ErrorMessage,
+            //        ExecutionStatus = execResult.ExecutionStatus,
+            //        Result = execResult.Result,
+            //    });
+            //}
+
+            //var ret = tclInterp.Execute("wipe");
+            //return new TclExecutionResultViewModel()
+            //{
+            //    Command = "wipe",
+            //    DateTime = DateTime.UtcNow,
+            //    ErrorMessage = ret.ErrorMessage,
+            //    ExecutionStatus = ret.ExecutionStatus,
+            //    Result = ret.Result
+            //};
         }
 
-        private DomainWrapper Domain
+        private TclWrapper getTclWrapper(string connId) {
+            return IOpenSeesService.TclWrappers[connId];
+        }
+
+        private async Task PromptOpenSeesCopyRight(string connectionId)
         {
-            get
-            {
-                return tclInterp.GetActiveDomain();
-            }
+            await hubContext.WriteLine(connectionId, "" , HtmlStylingClass.TextCenter);
+            await hubContext.WriteLine(connectionId, "OpenSees -- Open System For Earthquake Engineering Simulation", HtmlStylingClass.TextCenter);
+            await hubContext.WriteLine(connectionId, "Pacific Earthquake Engineering Research Center", HtmlStylingClass.TextCenter);
+            await hubContext.WriteLine(connectionId, "Version 3.2.0", HtmlStylingClass.TextCenter);
+            await hubContext.WriteLine(connectionId, "(c) Copyright 1999-2016 The Regents of the University of California", HtmlStylingClass.TextCenter);
+            await hubContext.WriteLine(connectionId, "All Rights Reserved", HtmlStylingClass.TextCenter);
+            await hubContext.WriteLine(connectionId, "(Copyright and Disclaimer @ http://www.berkeley.edu/OpenSees/copyright.html)", HtmlStylingClass.TextCenter);
         }
     }
 }

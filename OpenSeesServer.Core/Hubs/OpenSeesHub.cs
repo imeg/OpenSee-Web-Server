@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using OpenSeesServer.Core.Models.RequestModels.SignalRModels;
+using OpenSeesServer.Core.Services.OpenSeesServices;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,13 @@ namespace OpenSeesServer.Core.Hubs
 {
     public class OpenSeesHub : Hub
     {
+        private readonly IOpenSeesService openSeesService;
+
+        public OpenSeesHub(IOpenSeesService openSeesService)
+        {
+            this.openSeesService = openSeesService;
+        }
+
         public override Task OnConnectedAsync()
         {
             return base.OnConnectedAsync();
@@ -16,21 +24,51 @@ namespace OpenSeesServer.Core.Hubs
 
         public override Task OnDisconnectedAsync(Exception exception)
         {
+            if (IOpenSeesService.TclWrappers.ContainsKey(Context.ConnectionId))
+            {
+                try
+                {
+                    var tclInterp = IOpenSeesService.TclWrappers[Context.ConnectionId];
+                    try
+                    {
+                        IOpenSeesService.TclWrappers.Remove(Context.ConnectionId);
+                    }
+                    catch (Exception)
+                    {
+
+                    }
+
+                    try
+                    {
+                        tclInterp.Execute("wipe");
+                    }
+                    catch (Exception)
+                    {
+
+                    }
+
+                    try
+                    {
+                        //tclInterp.Dispose();
+                    }
+                    catch (Exception)
+                    {
+
+                    }
+                }
+                catch (Exception)
+                {
+
+                }
+            }
             return base.OnDisconnectedAsync(exception);
         }
 
-        [HubMethodName("get-hub-info")]
-        public async Task GetHubInfo()
+        [HubMethodName("get-connection-info")]
+        public async Task GetConnectionInfo()
         {
-            await Clients.Caller.SendAsync("opensees-prompt", "");
-            await Clients.Caller.SendAsync("opensees-prompt", "OpenSees -- Open System For Earthquake Engineering Simulation");
-            await Clients.Caller.SendAsync("opensees-prompt", "Pacific Earthquake Engineering Research Center");
-            await Clients.Caller.SendAsync("opensees-prompt", "Version 3.2.0");
-            await Clients.Caller.SendAsync("opensees-prompt", "(c) Copyright 1999-2016 The Regents of the University of California");
-            await Clients.Caller.SendAsync("opensees-prompt", "All Rights Reserved");
-            await Clients.Caller.SendAsync("opensees-prompt", "(Copyright and Disclaimer @ http://www.berkeley.edu/OpenSees/copyright.html)");
-
-            await Clients.Caller.SendAsync("hub-info", new HubInfoViewModel {
+            await Clients.Caller.SendAsync("connection-info", new HubInfoViewModel
+            {
                 ConnectionId = Context.ConnectionId,
             });
             return;

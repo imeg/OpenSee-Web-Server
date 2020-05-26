@@ -1,3 +1,3 @@
-export interface HubInfo {
+export interface HubConnectionInfo {
     connectionId: string;
 }
